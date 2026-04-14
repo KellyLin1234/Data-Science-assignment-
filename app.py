@@ -1,36 +1,26 @@
 import streamlit as st
 import numpy as np
-import pandas as pd
 import joblib
-import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Gold Price Prediction", layout="wide")
+st.set_page_config(page_title="Gold Price Prediction (RF Only)", layout="wide")
 
 st.title("💰 Gold Price Prediction System")
-st.write("Compare Machine Learning Models for Gold Price Forecasting")
+st.write("Random Forest Model Only")
 
 # ----------------------------
-# Load models
+# Load model
 # ----------------------------
 @st.cache_resource
-def load_models():
+def load_model():
     rf = joblib.load("models/rf.pkl")
-    xgb = joblib.load("models/xgb.pkl")
-    gb = joblib.load("models/gb.pkl")
-    hybrid = joblib.load("models/hybrid.pkl")
-    return rf, xgb, gb, hybrid
+    return rf
 
-rf_model, xgb_model, gb_model, hybrid_model = load_models()
+rf_model = load_model()
 
 # ----------------------------
-# Sidebar
+# Sidebar inputs
 # ----------------------------
-model_choice = st.sidebar.selectbox(
-    "Select Model",
-    ("Random Forest", "XGBoost", "Gradient Boosting", "Hybrid (RF + LSTM)")
-)
-
-st.sidebar.write("Enter input values:")
+st.sidebar.header("Input Features")
 
 open_price = st.sidebar.number_input("Open Price", value=2000.0)
 high_price = st.sidebar.number_input("High Price", value=2050.0)
@@ -44,57 +34,27 @@ chg = st.sidebar.number_input("Change %", value=0.5)
 if st.sidebar.button("Predict Price"):
 
     input_data = np.array([[open_price, high_price, low_price, volume, chg]])
-
-    if model_choice == "Random Forest":
-        prediction = rf_model.predict(input_data)[0]
-
-    elif model_choice == "XGBoost":
-        prediction = xgb_model.predict(input_data)[0]
-
-    elif model_choice == "Gradient Boosting":
-        prediction = gb_model.predict(input_data)[0]
-
-    elif model_choice == "Hybrid (RF + LSTM)":
-        prediction = hybrid_model.predict(input_data)[0]
+    prediction = rf_model.predict(input_data)[0]
 
     st.subheader("📊 Predicted Gold Price")
     st.success(f"${prediction:.2f}")
 
 # ----------------------------
-# Model Info Section
+# Info section
 # ----------------------------
 st.markdown("---")
-st.subheader("📈 Model Information")
+st.subheader("📌 Model Info")
 
 st.write("""
-This system compares multiple machine learning models:
+This app uses a **Random Forest Regressor** trained on historical gold price data.
 
-- Random Forest  
-- XGBoost  
-- Gradient Boosting  
-- Hybrid Model (RF + LSTM feature-based)
+Input features:
+- Open
+- High
+- Low
+- Volume
+- Change %
 
-Evaluation metrics used in report:
-- RMSE
-- MAE
-- R²
-- MAPE
+Output:
+- Predicted Gold Price
 """)
-
-# ----------------------------
-# Visualization Section
-# ----------------------------
-st.markdown("---")
-st.subheader("📉 Sample Prediction Visualization")
-
-if st.button("Show Sample Chart"):
-    x = np.arange(0, 100)
-    y_actual = np.sin(x / 10) * 100 + 2000
-    y_pred = y_actual + np.random.normal(0, 20, 100)
-
-    fig, ax = plt.subplots()
-    ax.plot(y_actual, label="Actual Price")
-    ax.plot(y_pred, label="Predicted Price")
-    ax.legend()
-
-    st.pyplot(fig)
