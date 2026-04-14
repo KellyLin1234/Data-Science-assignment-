@@ -1,3 +1,1 @@
-import joblib
-
-joblib.dump(rf, "models/rf.pkl")
+joblib.load("models/rf.pkl")
