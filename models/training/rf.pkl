@@ -1,1 +1,1 @@
-joblib.load("models/rf.pkl")
+joblib.load("models/random_forest.pkl")
